@@ -23,18 +23,19 @@ async def on_ready():
 
 @bot.command()
 async def add(ctx: commands.Context, left: int, right: int):
-    """Adds 2 numbers together."""
-    await ctx.send(str(left + right))
+    try:
+        result = left + right
+    except:
+        await ctx.send("Error: both arguments should be integers")
+    await ctx.send(result)
 
-
-@bot.command()
-async def choose(ctx: commands.Context, *choices: str):
-    """Chooses between multiple choices."""
-    await ctx.send(random.choice(choices))
 
 @bot.command()
 async def minus(ctx: commands.Context, left: int, right: int):
-    await ctx.send(str(left - right))
-
+    try:
+        result = left - right
+    except:
+        await ctx.send("Error: both arguments should be integers")
+    await ctx.send(result)
 
 bot.run("TOKEN")
