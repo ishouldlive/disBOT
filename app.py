@@ -43,9 +43,9 @@ async def minus(ctx: commands.Context, left: int, right: int):
 
 @bot.command()
 @commands.cooldown(3, 5, commands.BucketType.default)
-async def weather(ctx : commands.Context, city_Name: str, state_Code: commands.Argument = "",country_Code: commands.Argument = ""):
+async def weather(ctx : commands.Context, city_Name: str, state_Code: commands.BadArgument = "",country_Code: commands.BadArgument = ""):
     endpoint = "http://api.openweathermap.org/geo/1.0/direct?q={city},{state},{country}&limit=1&appid={appid}"
-    api_key = "{API_KEY}"
+    api_key = "API_KEY"
     params = {
         "city": city_Name,
         "state": state_Code,
@@ -57,23 +57,32 @@ async def weather(ctx : commands.Context, city_Name: str, state_Code: commands.A
     endpoint = "http://api.openweathermap.org/geo/1.0/direct?q={city},{state},{country}&limit=1&appid={appid}"
     url = endpoint.format(**params)
     response = requests.get(url)
-    data = json.loads(response.text)
+    data = response.json()
 
-    params.clear()
-    element = data[0]
-    params = {
-        "lat": element["lat"],
-        "lon": element["lon"],
-        "api_key": api_key,
-    }
-
+    element = data
+    try:
+        params = {
+            "lat": element[0]["lat"],
+            "lon": element[0]["lon"],
+            "api_key": api_key,
+        }
+    except:
+        await ctx.send("Error: Couldn't find the location provided")
     endpoint = "https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=metric"
     url = endpoint.format(**params)
     response = requests.get(url)
-    data = json.loads(response.text)
-    element = data[0]
+    data = response.json()
+    element = data
 
-    embed = discord.Embed(title=f"Wheather in {city_Name}", description=element["description"])
-    embed.add_field(name="Temperature", value=f"Cº{element['main']}")
-    embed.add_field(name="Wind speed", value=f"KM/h {speed}")
+    if element["weather"][0]["main"] == "Rain":
+        description = "Bring an umbrella!"
+    else:
+        description = "No need to bring a umbrella :D"
+
+    embed = discord.Embed(title=f"Wheather in {city_Name}", description=description)
+    embed.add_field(name="Temperature", value=f"Cº{element['main']['temp']}")
+    embed.add_field(name="Wind speed", value=f"km/h {element['wind']['speed']}")
+    embed.add_field(name="Weather", value=element['weather'][0]["description"])
+    await ctx.send(embed=embed)
+
 bot.run("TOKEN")
